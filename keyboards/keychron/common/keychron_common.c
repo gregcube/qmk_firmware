@@ -16,11 +16,9 @@
 
 #include "keychron_common.h"
 #include "sync_timer.h"
-#include "keystroker.h"
 
 bool is_siri_active = false;
 uint32_t siri_timer = 0;
-uint64_t keystrokes = 0;
 
 key_combination_t key_comb_list[4] = {
     {2, {KC_LWIN, KC_TAB}},
@@ -41,13 +39,7 @@ void housekeeping_task_keychron(void) {
     }
 }
 
-void add_keystroke() {
-  keystrokes++;
-}
-
 bool process_record_keychron(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) add_keystroke();
-
     switch (keycode) {
         case QK_KB_0:
             if (record->event.pressed) {
