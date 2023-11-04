@@ -23,7 +23,7 @@ void keyboard_post_init_kb()
 {
   uint8_t buf[sizeof(uint64_t)];
   eeprom_read_keystroke(buf);
-  memcpy(&keystrokes, &buf, sizeof(uint64_t));
+  memcpy(&keystrokes, buf, sizeof(uint64_t));
 }
 
 bool process_record_keystroke(uint16_t keycode, keyrecord_t *record)
