@@ -1,4 +1,9 @@
+/**
+ * Implements a super simple keystroke counter.
+ */
+
 #include "raw_hid.h"
+#include "eeprom.h"
 #include "keychron_common.h"
 #include "keystroker.h"
 
@@ -15,14 +20,45 @@ bool process_record_keystroke(uint16_t keycode, keyrecord_t *record)
   return true;
 }
 
+void eeprom_write_keystroke()
+{
+  uint16_t addr = WEAR_LEVELING_LOGICAL_SIZE - sizeof(uint64_t);
+  for (uint8_t i = 0; i < sizeof(uint64_t); i++) {
+    eeprom_write_byte((uint8_t *)(addr + i), (uint8_t)(keystrokes >> (i * 8)));
+  }
+}
+
+void eeprom_read_keystroke(uint8_t *buf)
+{
+  uint16_t addr = WEAR_LEVELING_LOGICAL_SIZE - sizeof(uint64_t);
+  for (uint8_t i = 0; i < sizeof(uint64_t); i++, addr++) {
+    buf[i] = eeprom_read_byte((const uint8_t *)(uintptr_t)addr);
+  }
+}
+
 void raw_hid_receive(uint8_t *data, uint8_t length)
 {
-  if (data[0] == 0xff) {
-    for (int i = 0; i < 8; i++) {
+  switch (data[0]) {
+  // Write keystrokes to eeprom.
+  // Read back keystrokes from eeprom.
+  case 0xff:
+    eeprom_write_keystroke();
+    eeprom_read_keystroke(&data[1]);
+    break;
+
+  // Read keystrokes from eeprom.
+  case 0xfe:
+    eeprom_read_keystroke(&data[1]);
+    break;
+
+  // Read keystrokes.
+  case 0x01:
+    for (uint8_t i = 0; i < sizeof(uint64_t); i++) {
       data[i + 1] = (uint8_t)(keystrokes >> (i * 8)) & 0xff;
     }
-
-    raw_hid_send(data, length);
+    break;
   }
+
+  raw_hid_send(data, length);
 }
 
