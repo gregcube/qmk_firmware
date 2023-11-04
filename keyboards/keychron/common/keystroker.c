@@ -14,6 +14,11 @@ void add_keystroke()
   keystrokes++;
 }
 
+void reset_keystroke()
+{
+  keystrokes = 0;
+}
+
 void keyboard_post_init_kb()
 {
   uint8_t buf[sizeof(uint64_t)];
@@ -24,7 +29,19 @@ void keyboard_post_init_kb()
 bool process_record_keystroke(uint16_t keycode, keyrecord_t *record)
 {
   if (record->event.pressed) add_keystroke();
-  return true;
+
+  switch (keycode) {
+  case KEYSTROKER_WRITE:
+    if (record->event.pressed) eeprom_write_keystroke();
+    return false;
+
+  case KEYSTROKER_RESET:
+    if (record->event.pressed) reset_keystroke();
+    return false;
+
+  default:
+    return true;
+  }
 }
 
 void eeprom_write_keystroke()
