@@ -8,7 +8,7 @@ enum keystroker_keycodes {
 
 enum hid_commands {
   CMD_KEYSTROKE_WRITE = 0xff,  // Write keystroke count to eeprom
-  CMD_KEYSTROKE_READ  = 0xfe,  // Read keystroke count from eepom
+  CMD_KEYSTROKE_READ  = 0xfe,  // Read keystroke count from eeprom
   CMD_KEYSTROKE_COUNT = 0x01   // Read keystroke count from variable
 };
 
