@@ -52,34 +52,35 @@ void eeprom_write_keystroke()
   }
 }
 
-void eeprom_read_keystroke(uint8_t *buf)
+void eeprom_read_keystroke(uint8_t *ptr)
 {
   uint16_t addr = WEAR_LEVELING_LOGICAL_SIZE - sizeof(uint64_t);
-  for (uint8_t i = 0; i < sizeof(uint64_t); i++, addr++) {
-    buf[i] = eeprom_read_byte((const uint8_t *)(uintptr_t)addr);
+  for (uint8_t i = 0; i < sizeof(uint64_t); i++) {
+    ptr[i] = eeprom_read_byte((const uint8_t *)(addr + i));
+  }
+}
+
+void keystroke_count(uint8_t *ptr)
+{
+  for (uint8_t i = 0; i < sizeof(uint64_t); i++) {
+    ptr[i] = (keystrokes >> (i * 8)) & 0xff;
   }
 }
 
 void raw_hid_receive(uint8_t *data, uint8_t length)
 {
   switch (data[0]) {
-  // Write keystrokes to eeprom.
-  // Read back keystrokes from eeprom.
-  case 0xff:
+  case CMD_KEYSTROKE_WRITE:
     eeprom_write_keystroke();
     eeprom_read_keystroke(&data[1]);
     break;
 
-  // Read keystrokes from eeprom.
-  case 0xfe:
+  case CMD_KEYSTROKE_READ:
     eeprom_read_keystroke(&data[1]);
     break;
 
-  // Read keystrokes.
-  case 0x01:
-    for (uint8_t i = 0; i < sizeof(uint64_t); i++) {
-      data[i + 1] = (uint8_t)(keystrokes >> (i * 8)) & 0xff;
-    }
+  case CMD_KEYSTROKE_COUNT:
+    keystroke_count(&data[1]);
     break;
   }
 
